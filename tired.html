@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', sans-serif;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.user-msg, .ai-msg {
+    animation: fadeIn 0.3s ease;
+}
+body {
+    background: #212121;
+    color: #ececec;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 40px 20px 30px;
+}
+
+h1 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #ececec;
+}
+
+#messages {
+    width: 100%;
+    max-width: 700px;
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.user-msg, .ai-msg {
+    padding: 14px 18px;
+    border-radius: 12px;
+    max-width: 80%;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+.user-msg {
+    background: #2f2f2f;
+    align-self: flex-end;
+}
+
+.ai-msg {
+    background: #212121;
+    align-self: flex-start;
+    color: #ececec;
+}
+.ai-msg pre {
+    background: #1a1a1a;
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+    margin: 8px 0;
+}
+
+.ai-msg code {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+}
+.input-row {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    max-width: 700px;
+    background: #2f2f2f;
+    border-radius: 16px;
+    padding: 12px 16px;
+    align-items: center;
+}
+
+input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: white;
+    font-size: 1rem;
+}
+
+input::placeholder {
+    color: #888;
+}
+input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 30px #2f2f2f inset;
+    -webkit-text-fill-color: white;
+}
+button {
+    background: #676767;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: background 0.2s;
+}
+
+button:hover {
+    background: #888;
+}  
+.copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    background: #444;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.copy-btn:hover {
+    background: #666;
+}
+</style>
+    <title></title>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <h1>Where should we begin?</h1>
+    <div id="messages"></div>
+    <div class="input-row">
+    <input id="input" placeholder="Learn Anything">
+    <button onclick="send()">🡡</button>
+    </div>
+    <script>
+        document.getElementById('input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') send()
+})
+async function send(){
+    const input = document.getElementById('input')
+    const userInput = input.value
+    if (!userInput) return
+
+    const messages = document.getElementById('messages')
+    
+    const userDiv = document.createElement('div')
+    userDiv.className = 'user-msg'
+    userDiv.textContent = userInput
+    messages.appendChild(userDiv)
+    
+    input.value = ''
+
+    const response = await fetch('http://localhost:3000/chat', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ message: userInput })
+    })
+    const data = await response.json()
+    
+    const aiDiv = document.createElement('div')
+    aiDiv.className = 'ai-msg'
+    aiDiv.innerHTML = marked.parse(data.reply)
+    aiDiv.querySelectorAll('pre code').forEach(block => {
+    hljs.highlightElement(block)
+    
+    const pre = block.parentElement
+    const copyBtn = document.createElement('button')
+    copyBtn.textContent = 'Copy'
+    copyBtn.className = 'copy-btn'
+    copyBtn.onclick = () => {
+        navigator.clipboard.writeText(block.textContent)
+        copyBtn.textContent = 'Copied!'
+        setTimeout(() => copyBtn.textContent = 'Copy', 2000)
+    }
+    pre.style.position = 'relative'
+    pre.appendChild(copyBtn)
+})
+    messages.appendChild(aiDiv)
+    
+    messages.scrollTop = messages.scrollHeight
+}
+    </script>
+</body>
+</html>
