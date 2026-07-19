@@ -8,6 +8,7 @@ const db = require("./database")
 const port = 3000
 app.use(cors())
 app.use(express.json())
+const history = [];
 
 app.post('/hash', async (req, res) => {
     const password = req.body.password
@@ -50,6 +51,8 @@ app.get('/me', (req, res) => {
 })
 app.post('/chat', async (req,res) => {
     const message = req.body.message
+    
+    history.push({ role: 'user', content: message })
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -58,10 +61,12 @@ app.post('/chat', async (req,res) => {
         },
         body: JSON.stringify({
             model: 'llama-3.3-70b-versatile',
-            messages: [{ role: 'user', content: message }]
+            messages: history
         })
     })
+    
     const data = await response.json()
+    history.push({ role: 'assistant', content: data.choices[0].message.content })
     res.json({ reply: data.choices[0].message.content })
 })
 app.listen(port, () => {
