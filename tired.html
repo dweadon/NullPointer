@@ -164,6 +164,23 @@ button:hover {
     background: #444;
     border-radius: 4px;
 }
+body::-webkit-scrollbar {
+    width: 4px;
+}
+
+body::-webkit-scrollbar-track {
+    background: #212121;
+}
+
+body::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 4px;
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #444 #212121;
+}
 @media (max-width: 600px) {
     h1 {
         font-size: 1.2rem;
