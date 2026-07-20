@@ -69,7 +69,7 @@ app.post('/chat', async (req, res) => {
         );
 
         const data = await response.json();
-
+        console.log(JSON.stringify(data, null, 2));
         if (!data.choices) {
             console.error(data);
             return res.status(500).json({
