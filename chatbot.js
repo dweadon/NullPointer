@@ -49,26 +49,46 @@ app.get('/me', (req, res) => {
         token: verify
     })
 })
-app.post('/chat', async (req,res) => {
-    const message = req.body.message
-    
-    history.push({ role: 'user', content: message })
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            model: 'llama-3.3-70b-versatile',
-            messages: history
-        })
-    })
-    
-    const data = await response.json()
-    history.push({ role: 'assistant', content: data.choices[0].message.content })
-    res.json({ reply: data.choices[0].message.content })
-})
+app.post('/chat', async (req, res) => {
+    try {
+        const messages = req.body.messages;
+
+        const response = await fetch(
+            'https://api.groq.com/openai/v1/chat/completions',
+            {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: 'llama-3.3-70b-versatile',
+                    messages: messages
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (!data.choices) {
+            console.error(data);
+            return res.status(500).json({
+                error: 'Groq API error'
+            });
+        }
+
+        res.json({
+            reply: data.choices[0].message.content
+        });
+
+    } catch (err) {
+        console.error(err);
+
+        res.status(500).json({
+            error: 'Server error'
+        });
+    }
+});
 app.listen(port, () => {
     console.log(`port: ${port}`)
 })
